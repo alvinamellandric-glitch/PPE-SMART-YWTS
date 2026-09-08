@@ -58,8 +58,8 @@ export const departments: string[] = [
 'QHSE',
 'Fasilitas',
 'Ship Building',
-'PPC'
-  'Subcon'
+'PPC',
+'Subcon',
 ];
 
 
