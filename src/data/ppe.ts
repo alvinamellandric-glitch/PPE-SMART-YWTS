@@ -58,7 +58,9 @@ export const departments: string[] = [
 'QHSE',
 'Fasilitas',
 'Ship Building',
-'PPC'];
+'PPC'
+  'Subcon'
+];
 
 
 export const wearpackSizes: string[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
