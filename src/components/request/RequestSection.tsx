@@ -10,12 +10,12 @@ type RequestKind = 'sekali-pakai' | 'indent';
 const TODAY = new Date().toISOString().split('T')[0];
 
 const INDENT_APD_OPTIONS = [
-'Wearpack Kerja',
-'Helm Safety',
-'Sepatu Safety (Low Cut)',
-'Boots Safety (High Cut)',
-'Kacamata Safety / Goggles'];
-
+  'Wearpack Kerja',
+  'Helm Safety',
+  'Sepatu Safety (Low Cut)',
+  'Boots Safety (High Cut)',
+  'Kacamata Safety / Goggles'
+];
 
 const SHOE_SIZES = ['36', '37', '38', '39', '40', '41', '42', '43', '44'];
 const GLASSES_TYPES = ['Clear Lens', 'Dark / Smoke', 'Chemical Splash Goggles'];
@@ -149,7 +149,8 @@ export function RequestSection() {
   };
 
   const totalConsumables = Object.values(quantities).reduce((a, b) => a + b, 0);
-  const canSubmit = nama.trim() !== '' && email.trim() !== '' && divisi !== '' && !loading && (kind === 'indent' ? indentQty > 0 : totalConsumables > 0);
+  const isEmailRequired = kind === 'indent';
+  const canSubmit = nama.trim() !== '' && (!isEmailRequired || email.trim() !== '') && divisi !== '' && !loading && (kind === 'indent' ? indentQty > 0 : totalConsumables > 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,8 +254,8 @@ export function RequestSection() {
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] lg:gap-10">
         <div className="rounded-2xl border border-line bg-white p-6 shadow-card sm:p-8">
-          {submitted ?
-          <div className="rounded-xl border border-ok-100 bg-ok-50 p-8 text-center">
+          {submitted ? (
+            <div className="rounded-xl border border-ok-100 bg-ok-50 p-8 text-center">
               <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-ok-600 text-white">
                 <CheckCircle2Icon className="h-6 w-6" />
               </div>
@@ -263,23 +264,22 @@ export function RequestSection() {
                 Registrasi ID: <strong className="font-mono text-safety-600">{generatedId}</strong>. Notifikasi email otomatis akan dikirim ke alamat Anda saat unit siap diserahkan.
               </p>
               <button
-              type="button"
-              onClick={() => {
-                setSubmitted(false);
-                setQuantities({});
-                setNama('');
-                setEmail('');
-                setDivisi('');
-                setIndentNote('');
-                fetchAllData();
-              }}
-              className="mt-5 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink hover:bg-canvas">
-              
+                type="button"
+                onClick={() => {
+                  setSubmitted(false);
+                  setQuantities({});
+                  setNama('');
+                  setEmail('');
+                  setDivisi('');
+                  setIndentNote('');
+                  fetchAllData();
+                }}
+                className="mt-5 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink hover:bg-canvas">
                 Ajukan Permintaan Lain
               </button>
-            </div> :
-
-          <form className="space-y-7" onSubmit={handleSubmit}>
+            </div>
+          ) : (
+            <form className="space-y-7" onSubmit={handleSubmit}>
               <div className="grid gap-4 sm:grid-cols-4">
                 <Field label="Tanggal Permintaan" htmlFor="req-tanggal" required>
                   <input id="req-tanggal" type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} className={inputClasses} required />
@@ -287,8 +287,21 @@ export function RequestSection() {
                 <Field label="Nama Pemohon" htmlFor="req-nama" required>
                   <input id="req-nama" type="text" placeholder="Nama lengkap" value={nama} onChange={(e) => setNama(e.target.value)} className={inputClasses} required />
                 </Field>
-                <Field label="Email Pemohon" htmlFor="req-email" required hint="Untuk notifikasi logistik">
-                  <input id="req-email" type="email" placeholder="nama@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClasses} required />
+                <Field 
+                  label={kind === 'indent' ? "Email Pemohon" : "Email Pemohon (Opsional)"} 
+                  htmlFor="req-email" 
+                  required={kind === 'indent'} 
+                  hint={kind === 'indent' ? "Wajib untuk notifikasi tracking indent" : "Boleh dikosongkan untuk APD sekali pakai"}
+                >
+                  <input 
+                    id="req-email" 
+                    type="email" 
+                    placeholder={kind === 'indent' ? "nama@email.com" : "nama@email.com (opsional)"} 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    className={inputClasses} 
+                    required={kind === 'indent'} 
+                  />
                 </Field>
                 <Field label="Divisi" htmlFor="req-divisi" required>
                   <select id="req-divisi" className={inputClasses} value={divisi} onChange={(e) => setDivisi(e.target.value)} required>
@@ -302,27 +315,26 @@ export function RequestSection() {
                 <p className="text-sm font-semibold text-ink-soft">Jenis Permintaan</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {[
-                {
-                  id: 'sekali-pakai' as const,
-                  title: 'APD Sekali Pakai',
-                  subtitle: 'Habis pakai · ambil langsung di gudang',
-                  icon: SprayCanIcon
-                },
-                {
-                  id: 'indent' as const,
-                  title: 'APD Perlu Waktu / Indent',
-                  subtitle: 'Pengadaan khusus saat persediaan habis',
-                  icon: ShirtIcon
-                }].
-                map(({ id, title, subtitle, icon: Icon }) =>
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setKind(id)}
-                  className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
-                  kind === id ? 'border-safety-600 bg-safety-50/60' : 'border-line bg-white hover:bg-canvas'}`
-                  }>
-                  
+                    {
+                      id: 'sekali-pakai' as const,
+                      title: 'APD Sekali Pakai',
+                      subtitle: 'Habis pakai · ambil langsung di gudang',
+                      icon: SprayCanIcon
+                    },
+                    {
+                      id: 'indent' as const,
+                      title: 'APD Perlu Waktu / Indent',
+                      subtitle: 'Pengadaan khusus saat persediaan habis',
+                      icon: ShirtIcon
+                    }
+                  ].map(({ id, title, subtitle, icon: Icon }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setKind(id)}
+                      className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
+                        kind === id ? 'border-safety-600 bg-safety-50/60' : 'border-line bg-white hover:bg-canvas'
+                      }`}>
                       <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${kind === id ? 'bg-safety-600 text-white' : 'bg-canvas text-ink-muted'}`}>
                         <Icon className="h-4 w-4" />
                       </span>
@@ -331,12 +343,12 @@ export function RequestSection() {
                         <span className="mt-0.5 block text-xs text-ink-subtle">{subtitle}</span>
                       </span>
                     </button>
-                )}
+                  ))}
                 </div>
               </div>
 
-              {kind === 'sekali-pakai' ?
-            <fieldset>
+              {kind === 'sekali-pakai' ? (
+                <fieldset>
                   <legend className="text-sm font-semibold text-ink-soft">Item Habis Pakai</legend>
                   <p className="mt-0.5 text-xs text-ink-subtle">
                     Ketersediaan unit fisik terkoneksi real-time dengan Master APD Google Sheets.
@@ -344,12 +356,12 @@ export function RequestSection() {
 
                   <div className="mt-3 space-y-3">
                     {consumableItems.map((item) => {
-                  const qty = quantities[item.id] ?? 0;
-                  const availableStock = getLiveStock(item.label, item.stock);
-                  const isOutOfStock = availableStock <= 0;
+                      const qty = quantities[item.id] ?? 0;
+                      const availableStock = getLiveStock(item.label, item.stock);
+                      const isOutOfStock = availableStock <= 0;
 
-                  return (
-                    <div key={item.id} className="rounded-xl border border-line bg-white p-4">
+                      return (
+                        <div key={item.id} className="rounded-xl border border-line bg-white p-4">
                           <div className="flex flex-wrap items-center justify-between gap-4">
                             <div>
                               <p className="text-sm font-bold text-ink">{item.label}</p>
@@ -363,65 +375,61 @@ export function RequestSection() {
 
                               <div className="flex items-center rounded-lg border border-line">
                                 <button
-                              type="button"
-                              disabled={isOutOfStock}
-                              onClick={() => setQty(item.id, qty - 1, availableStock)}
-                              className="grid h-9 w-9 place-items-center rounded-l-lg text-ink-muted hover:bg-canvas disabled:opacity-30">
-                              
+                                  type="button"
+                                  disabled={isOutOfStock}
+                                  onClick={() => setQty(item.id, qty - 1, availableStock)}
+                                  className="grid h-9 w-9 place-items-center rounded-l-lg text-ink-muted hover:bg-canvas disabled:opacity-30">
                                   <MinusIcon className="h-4 w-4" />
                                 </button>
                                 <span className="w-10 text-center text-sm font-bold tabular-nums text-ink">
                                   {qty}
                                 </span>
                                 <button
-                              type="button"
-                              disabled={isOutOfStock || qty >= availableStock}
-                              onClick={() => setQty(item.id, qty + 1, availableStock)}
-                              className="grid h-9 w-9 place-items-center rounded-r-lg text-ink-muted hover:bg-canvas disabled:opacity-30">
-                              
+                                  type="button"
+                                  disabled={isOutOfStock || qty >= availableStock}
+                                  onClick={() => setQty(item.id, qty + 1, availableStock)}
+                                  className="grid h-9 w-9 place-items-center rounded-r-lg text-ink-muted hover:bg-canvas disabled:opacity-30">
                                   <PlusIcon className="h-4 w-4" />
                                 </button>
                               </div>
                             </div>
                           </div>
 
-                          {item.hasSubtype &&
-                      <div className="mt-3 border-t border-line/60 pt-3">
+                          {item.hasSubtype && (
+                            <div className="mt-3 border-t border-line/60 pt-3">
                               <label htmlFor="glasses-subtype-select" className="text-xs font-semibold text-ink-soft">
                                 Tipe Lensa Kacamata:
                               </label>
                               <select
-                          id="glasses-subtype-select"
-                          value={consumableGlassesType}
-                          onChange={(e) => handleGlassesTypeChange(e.target.value)}
-                          className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs font-bold text-ink focus:border-safety-600 focus:outline-none">
-                          
-                                {GLASSES_TYPES.map((g) =>
-                          <option key={g} value={g}>{g}</option>
-                          )}
+                                id="glasses-subtype-select"
+                                value={consumableGlassesType}
+                                onChange={(e) => handleGlassesTypeChange(e.target.value)}
+                                className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs font-bold text-ink focus:border-safety-600 focus:outline-none">
+                                {GLASSES_TYPES.map((g) => (
+                                  <option key={g} value={g}>{g}</option>
+                                ))}
                               </select>
                             </div>
-                      }
+                          )}
 
-                          {isOutOfStock && item.canIndentIfEmpty &&
-                      <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
+                          {isOutOfStock && item.canIndentIfEmpty && (
+                            <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
                               <span>Stok tipe ini sedang kosong di gudang. Ajukan restock unit logistik.</span>
                               <button
-                          type="button"
-                          onClick={() => handleSwitchToIndent(item.id)}
-                          className="inline-flex items-center gap-1 font-bold text-safety-600 hover:underline">
-                          
+                                type="button"
+                                onClick={() => handleSwitchToIndent(item.id)}
+                                className="inline-flex items-center gap-1 font-bold text-safety-600 hover:underline">
                                 Isi Form Indent <ArrowRightIcon className="h-3.5 w-3.5" />
                               </button>
                             </div>
-                      }
-                        </div>);
-
-                })}
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                </fieldset> :
-
-            <fieldset className="space-y-4">
+                </fieldset>
+              ) : (
+                <fieldset className="space-y-4">
                   <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 flex items-start gap-2.5 text-xs text-amber-900">
                     <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
                     <span>
@@ -432,9 +440,9 @@ export function RequestSection() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Pilih APD yang Diminta" htmlFor="indent-apd-type" required>
                       <select id="indent-apd-type" className={inputClasses} value={selectedIndentApd} onChange={(e) => setSelectedIndentApd(e.target.value)}>
-                        {INDENT_APD_OPTIONS.map((opt) =>
-                    <option key={opt} value={opt}>{opt}</option>
-                    )}
+                        {INDENT_APD_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
                       </select>
                     </Field>
 
@@ -443,60 +451,59 @@ export function RequestSection() {
                     </Field>
                   </div>
 
-                  {selectedIndentApd === 'Wearpack Kerja' &&
-              <div>
+                  {selectedIndentApd === 'Wearpack Kerja' && (
+                    <div>
                       <Field label="Ukuran Baju" htmlFor="wearpack-size" required>
                         <select id="wearpack-size" className={inputClasses} value={wearpackSize} onChange={(e) => setWearpackSize(e.target.value)}>
                           {wearpackSizes.map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </Field>
                     </div>
-              }
+                  )}
 
-                  {(selectedIndentApd === 'Sepatu Safety (Low Cut)' || selectedIndentApd === 'Boots Safety (High Cut)') &&
-              <div>
+                  {(selectedIndentApd === 'Sepatu Safety (Low Cut)' || selectedIndentApd === 'Boots Safety (High Cut)') && (
+                    <div>
                       <Field label="Ukuran Sepatu / Boots (EU)" htmlFor="shoe-size" required>
                         <select id="shoe-size" className={inputClasses} value={shoeSize} onChange={(e) => setShoeSize(e.target.value)}>
                           {SHOE_SIZES.map((s) => <option key={s} value={s}>Ukuran {s}</option>)}
                         </select>
                       </Field>
                     </div>
-              }
+                  )}
 
-                  {selectedIndentApd === 'Helm Safety' &&
-              <div className="rounded-xl border border-line bg-canvas p-3.5 text-xs text-ink-muted">
+                  {selectedIndentApd === 'Helm Safety' && (
+                    <div className="rounded-xl border border-line bg-canvas p-3.5 text-xs text-ink-muted">
                       Warna standar helm kerja yang dialokasikan: <strong>Putih Standar K3</strong>.
                     </div>
-              }
+                  )}
 
-                  {selectedIndentApd === 'Kacamata Safety / Goggles' &&
-              <div>
+                  {selectedIndentApd === 'Kacamata Safety / Goggles' && (
+                    <div>
                       <Field label="Tipe Lensa Kacamata" htmlFor="glasses-type" required>
                         <select id="glasses-type" className={inputClasses} value={glassesType} onChange={(e) => setGlassesType(e.target.value)}>
                           {GLASSES_TYPES.map((g) => <option key={g} value={g}>{g}</option>)}
                         </select>
                       </Field>
                     </div>
-              }
+                  )}
 
                   <Field label="Catatan Tambahan (Opsional)" htmlFor="indent-note" hint="Tuliskan catatan kebutuhan bila ada">
                     <textarea id="indent-note" rows={2} placeholder="Tuliskan catatan kebutuhan bila ada" value={indentNote} onChange={(e) => setIndentNote(e.target.value)} className={inputClasses} />
                   </Field>
                 </fieldset>
-            }
+              )}
 
               <div className="flex flex-wrap items-center gap-4">
                 <button
-                type="submit"
-                disabled={!canSubmit}
-                className="inline-flex items-center gap-2 rounded-lg bg-safety-600 px-6 py-3.5 text-sm font-bold text-white shadow-card hover:bg-safety-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400">
-                
+                  type="submit"
+                  disabled={!canSubmit}
+                  className="inline-flex items-center gap-2 rounded-lg bg-safety-600 px-6 py-3.5 text-sm font-bold text-white shadow-card hover:bg-safety-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400">
                   {loading ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <SendIcon className="h-4 w-4" />}
                   {loading ? 'Menyimpan...' : 'Kirim Formulir Permintaan'}
                 </button>
               </div>
             </form>
-          }
+          )}
         </div>
 
         {/* BILAH KANAN: PELACAK STATUS APD INDENT */}
@@ -515,19 +522,17 @@ export function RequestSection() {
                   value={searchTrackingId}
                   onChange={(e) => setSearchTrackingId(e.target.value)}
                   className="w-full rounded-lg border border-line py-1.5 pl-8 pr-3 text-xs font-semibold text-ink focus:border-safety-600 focus:outline-none" />
-                
               </div>
               <button
                 type="submit"
                 className="rounded-lg px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90"
                 style={{ backgroundColor: "#B91C1C" }}>
-                
                 Cari
               </button>
             </form>
 
-            {trackingResult ?
-            <div className="mt-4">
+            {trackingResult ? (
+              <div className="mt-4">
                 <p className="text-xs font-bold text-ink">
                   {trackingResult.ID || trackingResult['ID']} · {trackingResult.Nama || trackingResult['Nama']}
                 </p>
@@ -582,12 +587,12 @@ export function RequestSection() {
                     </div>
                   </li>
                 </ol>
-              </div> :
-
-            <p className="mt-4 rounded-xl border border-dashed border-line bg-canvas px-4 py-6 text-center text-xs text-ink-subtle">
+              </div>
+            ) : (
+              <p className="mt-4 rounded-xl border border-dashed border-line bg-canvas px-4 py-6 text-center text-xs text-ink-subtle">
                 Masukkan ID permintaan (REQ-...) untuk melacak status pesanan logistik Anda.
               </p>
-            }
+            )}
           </div>
 
           <div className="rounded-2xl border border-line bg-canvas p-5 text-sm leading-relaxed text-ink-muted">
@@ -598,6 +603,6 @@ export function RequestSection() {
           </div>
         </aside>
       </div>
-    </section>);
-
+    </section>
+  );
 }
