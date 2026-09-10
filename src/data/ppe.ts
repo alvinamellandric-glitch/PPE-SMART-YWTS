@@ -60,6 +60,9 @@ export const departments: string[] = [
 'Ship Building',
 'PPC',
 'Subcon',
+'Finance',
+'HC',
+'Marketing',
 ];
 
 
