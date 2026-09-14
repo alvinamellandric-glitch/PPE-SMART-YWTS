@@ -280,7 +280,7 @@ export function RequestSection() {
             </div>
           ) : (
             <form className="space-y-7" onSubmit={handleSubmit}>
-              <div className="grid gap-4 sm:grid-cols-4">
+              <div className="grid items-start gap-4 sm:grid-cols-4">
                 <Field label="Tanggal Permintaan" htmlFor="req-tanggal" required>
                   <input id="req-tanggal" type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} className={inputClasses} required />
                 </Field>
@@ -288,15 +288,14 @@ export function RequestSection() {
                   <input id="req-nama" type="text" placeholder="Nama lengkap" value={nama} onChange={(e) => setNama(e.target.value)} className={inputClasses} required />
                 </Field>
                 <Field 
-                  label={kind === 'indent' ? "Email Pemohon" : "Email Pemohon (Opsional)"} 
+                  label="Email Pemohon" 
                   htmlFor="req-email" 
-                  required={kind === 'indent'} 
-                  hint={kind === 'indent' ? "Wajib untuk notifikasi tracking indent" : "Boleh dikosongkan untuk APD sekali pakai"}
+                  required={kind === 'indent'}
                 >
                   <input 
                     id="req-email" 
                     type="email" 
-                    placeholder={kind === 'indent' ? "nama@email.com" : "nama@email.com (opsional)"} 
+                    placeholder="nama@email.com" 
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
                     className={inputClasses} 
@@ -362,13 +361,13 @@ export function RequestSection() {
 
                       return (
                         <div key={item.id} className="rounded-xl border border-line bg-white p-4">
-                          <div className="flex flex-wrap items-center justify-between gap-4">
-                            <div>
+                          <div className="flex flex-nowrap items-center justify-between gap-4">
+                            <div className="min-w-0 flex-1 pr-2">
                               <p className="text-sm font-bold text-ink">{item.label}</p>
                               <p className="mt-0.5 text-xs text-ink-subtle">{item.description} · Satuan: {item.unit}</p>
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex shrink-0 items-center gap-3">
                               <StatusBadge tone={availableStock <= 2 ? 'danger' : availableStock < 5 ? 'warning' : 'success'}>
                                 {availableStock > 0 ? `Stok: ${availableStock}` : 'Stok Habis'}
                               </StatusBadge>
