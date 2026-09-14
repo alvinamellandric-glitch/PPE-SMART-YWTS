@@ -10,15 +10,22 @@ type RequestKind = 'sekali-pakai' | 'indent';
 const TODAY = new Date().toISOString().split('T')[0];
 
 const INDENT_APD_OPTIONS = [
-  'Wearpack Kerja',
   'Helm Safety',
-  'Sepatu Safety (Low Cut)',
-  'Boots Safety (High Cut)',
+  'Body Harness',
+  'Safety Shoes (Low Cut)',
+  'Safety Boots (High Cut)',
+  'Wearpack',
+  'Sarung Tangan',
+  'Earplug',
+  'Chin Strap',
+  'Respirator',
+  'Kap Las',
   'Kacamata Safety / Goggles'
 ];
 
 const SHOE_SIZES = ['36', '37', '38', '39', '40', '41', '42', '43', '44'];
 const GLASSES_TYPES = ['Clear Lens', 'Dark / Smoke', 'Chemical Splash Goggles'];
+const GLOVE_TYPES = ['Sarung Tangan Electrical', 'Sarung Tangan Las', 'Sarung Tangan Kombinasi'];
 
 export function RequestSection() {
   const [kind, setKind] = useState<RequestKind>('sekali-pakai');
@@ -40,6 +47,7 @@ export function RequestSection() {
   const [wearpackSize, setWearpackSize] = useState('L');
   const [shoeSize, setShoeSize] = useState('40');
   const [glassesType, setGlassesType] = useState(GLASSES_TYPES[0]);
+  const [gloveType, setGloveType] = useState(GLOVE_TYPES[0]);
   const [indentNote, setIndentNote] = useState('');
 
   // Live Master APD
@@ -130,15 +138,16 @@ export function RequestSection() {
 
   const handleSwitchToIndent = (itemTarget: string) => {
     setKind('indent');
-    if (itemTarget.includes('kacamata')) {
-      setSelectedIndentApd('Kacamata Safety / Goggles');
-      setGlassesType(consumableGlassesType);
-    } else if (itemTarget.includes('helm')) {
-      setSelectedIndentApd('Helm Safety');
-    } else if (itemTarget.includes('boots')) {
-      setSelectedIndentApd('Boots Safety (High Cut)');
-    } else if (itemTarget.includes('sepatu')) {
-      setSelectedIndentApd('Sepatu Safety (Low Cut)');
+    const matchedItem = consumableItems.find(i => i.id === itemTarget);
+    if (matchedItem) {
+      if (matchedItem.label.toLowerCase().includes('sarung tangan')) {
+        setSelectedIndentApd('Sarung Tangan');
+        setGloveType(matchedItem.label);
+      } else if (matchedItem.label.toLowerCase().includes('kacamata')) {
+        setSelectedIndentApd('Kacamata Safety / Goggles');
+      } else {
+        setSelectedIndentApd(matchedItem.label);
+      }
     }
   };
 
@@ -177,25 +186,26 @@ export function RequestSection() {
         warnaTipe = consumableGlassesType;
       }
     } else {
-      jenisAPD = selectedIndentApd;
+      if (selectedIndentApd === 'Sarung Tangan') {
+        jenisAPD = gloveType;
+      } else {
+        jenisAPD = selectedIndentApd;
+      }
       jumlah = indentQty;
       catatan = indentNote || '-';
 
-      if (selectedIndentApd === 'Wearpack Kerja') {
+      if (selectedIndentApd.toLowerCase().includes('wearpack')) {
         ukuran = wearpackSize;
-        warnaTipe = 'Merah';
-      } else if (selectedIndentApd === 'Sepatu Safety (Low Cut)') {
+        warnaTipe = 'Standar';
+      } else if (selectedIndentApd.toLowerCase().includes('sepatu') || selectedIndentApd.toLowerCase().includes('boots')) {
         ukuran = shoeSize;
-        warnaTipe = 'Low Cut';
-      } else if (selectedIndentApd === 'Boots Safety (High Cut)') {
-        ukuran = shoeSize;
-        warnaTipe = 'High Cut';
-      } else if (selectedIndentApd === 'Helm Safety') {
-        ukuran = 'All Size';
-        warnaTipe = 'Putih Standar K3';
+        warnaTipe = selectedIndentApd.includes('Low Cut') ? 'Low Cut' : 'High Cut';
       } else if (selectedIndentApd === 'Kacamata Safety / Goggles') {
         ukuran = 'All Size';
         warnaTipe = glassesType;
+      } else {
+        ukuran = 'All Size';
+        warnaTipe = 'Standar';
       }
     }
 
@@ -248,7 +258,7 @@ export function RequestSection() {
           Portal Permintaan APD (Habis Pakai &amp; Pengadaan Indent)
         </h2>
         <p className="mt-2 text-ink-muted">
-          Pengambilan APD sekali pakai langsung di gudang serta formulir pengadaan khusus (Wearpack, Helm, Sepatu, Boots, Kacamata) saat persediaan unit habis.
+          Pengambilan APD sekali pakai langsung di gudang serta formulir pengadaan khusus saat persediaan unit habis.
         </p>
       </div>
 
@@ -350,7 +360,7 @@ export function RequestSection() {
                 <fieldset>
                   <legend className="text-sm font-semibold text-ink-soft">Item Habis Pakai</legend>
                   <p className="mt-0.5 text-xs text-ink-subtle">
-                    Ketersediaan unit fisik terkoneksi real-time dengan Master APD Google Sheets.
+                    Ketersediaan unit fisik terkoneksi real-time dengan Master APD Google Sheets[cite: 1].
                   </p>
 
                   <div className="mt-3 space-y-3">
@@ -396,11 +406,11 @@ export function RequestSection() {
 
                           {item.hasSubtype && (
                             <div className="mt-3 border-t border-line/60 pt-3">
-                              <label htmlFor="glasses-subtype-select" className="text-xs font-semibold text-ink-soft">
+                              <label htmlFor={`glasses-subtype-${item.id}`} className="text-xs font-semibold text-ink-soft">
                                 Tipe Lensa Kacamata:
                               </label>
                               <select
-                                id="glasses-subtype-select"
+                                id={`glasses-subtype-${item.id}`}
                                 value={consumableGlassesType}
                                 onChange={(e) => handleGlassesTypeChange(e.target.value)}
                                 className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3 py-2 text-xs font-bold text-ink focus:border-safety-600 focus:outline-none">
@@ -432,7 +442,7 @@ export function RequestSection() {
                   <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 flex items-start gap-2.5 text-xs text-amber-900">
                     <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
                     <span>
-                      <strong>Alur Pengadaan / Indent:</strong> Formulir ini memproses pemesanan APD lapangan (Wearpack, Helm, Sepatu, Boots, Kacamata) saat persediaan fisik di gudang kosong. Status dapat dilacak real-time.
+                      <strong>Alur Pengadaan / Indent:</strong> Formulir ini memproses pemesanan APD khusus (Helm, Body Harness, Sepatu, Boots, Wearpack, Sarung Tangan, Earplug, Chin Strap, Respirator, Kap Las, dan Kacamata) saat persediaan fisik di gudang kosong.
                     </span>
                   </div>
 
@@ -450,7 +460,19 @@ export function RequestSection() {
                     </Field>
                   </div>
 
-                  {selectedIndentApd === 'Wearpack Kerja' && (
+                  {selectedIndentApd === 'Sarung Tangan' && (
+                    <div>
+                      <Field label="Pilih Jenis Sarung Tangan" htmlFor="glove-type-select" required>
+                        <select id="glove-type-select" className={inputClasses} value={gloveType} onChange={(e) => setGloveType(e.target.value)}>
+                          {GLOVE_TYPES.map((gt) => (
+                            <option key={gt} value={gt}>{gt}</option>
+                          ))}
+                        </select>
+                      </Field>
+                    </div>
+                  )}
+
+                  {selectedIndentApd.toLowerCase().includes('wearpack') && (
                     <div>
                       <Field label="Ukuran Baju" htmlFor="wearpack-size" required>
                         <select id="wearpack-size" className={inputClasses} value={wearpackSize} onChange={(e) => setWearpackSize(e.target.value)}>
@@ -460,19 +482,13 @@ export function RequestSection() {
                     </div>
                   )}
 
-                  {(selectedIndentApd === 'Sepatu Safety (Low Cut)' || selectedIndentApd === 'Boots Safety (High Cut)') && (
+                  {(selectedIndentApd.toLowerCase().includes('sepatu') || selectedIndentApd.toLowerCase().includes('boots')) && (
                     <div>
                       <Field label="Ukuran Sepatu / Boots (EU)" htmlFor="shoe-size" required>
                         <select id="shoe-size" className={inputClasses} value={shoeSize} onChange={(e) => setShoeSize(e.target.value)}>
                           {SHOE_SIZES.map((s) => <option key={s} value={s}>Ukuran {s}</option>)}
                         </select>
                       </Field>
-                    </div>
-                  )}
-
-                  {selectedIndentApd === 'Helm Safety' && (
-                    <div className="rounded-xl border border-line bg-canvas p-3.5 text-xs text-ink-muted">
-                      Warna standar helm kerja yang dialokasikan: <strong>Putih Standar K3</strong>.
                     </div>
                   )}
 
