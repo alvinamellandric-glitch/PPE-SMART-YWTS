@@ -369,7 +369,7 @@ export function RequestSection() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                              <StatusBadge tone={availableStock > 20 ? 'success' : availableStock > 0 ? 'warning' : 'danger'}>
+                              <StatusBadge tone={availableStock <= 2 ? 'danger' : availableStock < 5 ? 'warning' : 'success'}>
                                 {availableStock > 0 ? `Stok: ${availableStock}` : 'Stok Habis'}
                               </StatusBadge>
 
