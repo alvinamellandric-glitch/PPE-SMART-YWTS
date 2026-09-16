@@ -51,7 +51,7 @@ export const navLinks: NavLink[] = [
 
 export const heroImage = 'https://www.samudera.id/public_assets/img/about-ywts.png';
 
-// Penambahan 'Procurement' ke dalam daftar divisi
+// Pembaruan Divisi: Menambahkan IT, mengubah HC menjadi HCFS, serta Procurement, Cleaning Service, Driver, dan Security
 export const departments: string[] = [
   'Produksi',
   'QHSE',
@@ -61,9 +61,13 @@ export const departments: string[] = [
   'Subcon',
   'Engineering',
   'Finance',
-  'HC',
+  'HCFS',
   'Marketing',
-  'Procurement'
+  'Procurement',
+  'Cleaning Service',
+  'Driver',
+  'Security',
+  'IT'
 ];
 
 export const wearpackSizes: string[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
