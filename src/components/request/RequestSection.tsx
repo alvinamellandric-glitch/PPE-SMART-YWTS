@@ -11,6 +11,7 @@ const TODAY = new Date().toISOString().split('T')[0];
 
 const INDENT_APD_OPTIONS = [
   'Helm Safety',
+  'Inner Helm',
   'Body Harness',
   'Safety Shoes (Low Cut)',
   'Safety Boots (High Cut)',
@@ -360,7 +361,7 @@ export function RequestSection() {
                 <fieldset>
                   <legend className="text-sm font-semibold text-ink-soft">Item Habis Pakai</legend>
                   <p className="mt-0.5 text-xs text-ink-subtle">
-                    Ketersediaan unit fisik terkoneksi real-time dengan Master APD Google Sheets[cite: 1].
+                    Ketersediaan unit fisik terkoneksi real-time dengan Master APD Google Sheets.
                   </p>
 
                   <div className="mt-3 space-y-3">
@@ -442,7 +443,7 @@ export function RequestSection() {
                   <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 flex items-start gap-2.5 text-xs text-amber-900">
                     <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
                     <span>
-                      <strong>Alur Pengadaan / Indent:</strong> Formulir ini memproses pemesanan APD khusus (Helm, Body Harness, Sepatu, Boots, Wearpack, Sarung Tangan, Earplug, Chin Strap, Respirator, Kap Las, dan Kacamata) saat persediaan fisik di gudang kosong.
+                      <strong>Alur Pengadaan / Indent:</strong> Formulir ini memproses pemesanan APD khusus (Helm, Inner Helm, Body Harness, Sepatu, Boots, Wearpack, Sarung Tangan, Earplug, Chin Strap, Respirator, Kap Las, dan Kacamata) saat persediaan fisik di gudang kosong.
                     </span>
                   </div>
 
