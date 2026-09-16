@@ -75,7 +75,7 @@ export const sopSteps: string[] = [
   'Untuk APD wajib kembali, kembalikan sebelum pukul 16.00 WIB pada hari yang sama dengan mengunggah foto bukti fisik.'
 ];
 
-// 4. Katalog APD Sesuai Daftar 23 Item Master APD di Google Sheets
+// 4. Katalog APD Sesuai Daftar 23 Item Master APD di Google Sheets (+ Inner Helm)
 export const ppeCatalog: PPEItem[] = [
   {
     id: 'helm-safety',
@@ -87,6 +87,17 @@ export const ppeCatalog: PPEItem[] = [
     requiresReturn: true,
     canIndentIfEmpty: true,
     description: 'Helm pelindung benturan kepala standar ANSI Z89.1.'
+  },
+  {
+    id: 'inner-helm',
+    name: 'Inner Helm',
+    category: 'Head Protection',
+    totalStock: 40,
+    availableStock: 15,
+    unit: 'pcs',
+    requiresReturn: false,
+    canIndentIfEmpty: true,
+    description: 'Tali pengikat / suspensi dalam helm pengaman.'
   },
   {
     id: 'body-harness',
