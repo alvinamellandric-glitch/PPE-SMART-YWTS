@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2Icon, Loader2Icon, MinusIcon, PlusIcon, SearchIcon, SendIcon, ShirtIcon, SprayCanIcon, AlertCircleIcon, ArrowRightIcon } from 'lucide-react';
+import { CheckCircle2Icon, Loader2Icon, MinusIcon, PlusIcon, SearchIcon, SendIcon, ShirtIcon, SprayCanIcon, AlertCircleIcon, ArrowRightIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { consumableItems, departments, wearpackSizes } from '../../data/ppe';
 import { Field, inputClasses } from '../ui/Field';
 import { StatusBadge } from '../ui/StatusBadge';
@@ -31,6 +31,12 @@ const GLOVE_TYPES = ['Sarung Tangan Electrical', 'Sarung Tangan Las', 'Sarung Ta
 export function RequestSection() {
   const [kind, setKind] = useState<RequestKind>('sekali-pakai');
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [shoeQuantities, setShoeQuantities] = useState<Record<string, Record<string, number>>>({
+    'safety-shoes': {},
+    'safety-boots': {}
+  });
+  const [expandedShoeItem, setExpandedShoeItem] = useState<string | null>(null);
+
   const [consumableGlassesType, setConsumableGlassesType] = useState(GLASSES_TYPES[0]);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -91,10 +97,25 @@ export function RequestSection() {
     return () => clearInterval(interval);
   }, []);
 
-  const getLiveStock = (itemLabel: string, fallbackStock: number) => {
+  // Fungsi live stock untuk membaca stok per ukuran spesifik dari Google Sheets
+  const getLiveStock = (itemLabel: string, fallbackStock: number, size?: string) => {
     if (!liveMasterApd || liveMasterApd.length === 0) return fallbackStock;
 
     let searchTarget = itemLabel.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    if (size && (searchTarget.includes('safetyshoes') || searchTarget.includes('safetyboots'))) {
+      const found = liveMasterApd.find((m) => {
+        const namaSheets = String(m['Nama APD'] || m.NamaAPD || m.nama || m['NAMA APD'] || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '');
+        return namaSheets.includes(searchTarget) && namaSheets.includes(`ukuran${size}`);
+      });
+      if (found) {
+        const s = found.Stok ?? found.stok ?? found.STOK ?? found['Jumlah'];
+        if (s !== undefined && s !== null && s !== '') return Number(s);
+      }
+      return fallbackStock;
+    }
 
     if (searchTarget.includes('kacamata')) {
       if (consumableGlassesType.includes('Dark')) {
@@ -107,9 +128,9 @@ export function RequestSection() {
     }
 
     const found = liveMasterApd.find((m) => {
-      const namaSheets = String(m['Nama APD'] || m.NamaAPD || m.nama || m['NAMA APD'] || '').
-      toLowerCase().
-      replace(/[^a-z0-9]/g, '');
+      const namaSheets = String(m['Nama APD'] || m.NamaAPD || m.nama || m['NAMA APD'] || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
       return namaSheets.includes(searchTarget) || searchTarget.includes(namaSheets);
     });
 
@@ -127,6 +148,24 @@ export function RequestSection() {
       ...prev,
       [id]: Math.min(maxStock, Math.max(0, next))
     }));
+  };
+
+  const setShoeSizeQty = (itemId: string, size: string, next: number, maxStock: number) => {
+    setShoeQuantities((prev) => {
+      const currentItemSizes = prev[itemId] || {};
+      return {
+        ...prev,
+        [itemId]: {
+          ...currentItemSizes,
+          [size]: Math.min(maxStock, Math.max(0, next))
+        }
+      };
+    });
+  };
+
+  const getTotalShoeQty = (itemId: string) => {
+    const sizesObj = shoeQuantities[itemId] || {};
+    return Object.values(sizesObj).reduce((a, b) => a + b, 0);
   };
 
   const handleGlassesTypeChange = (newType: string) => {
@@ -158,7 +197,10 @@ export function RequestSection() {
     setTrackingResult(found || null);
   };
 
-  const totalConsumables = Object.values(quantities).reduce((a, b) => a + b, 0);
+  const totalConsumables = Object.values(quantities).reduce((a, b) => a + b, 0) + 
+    Object.values(shoeQuantities['safety-shoes'] || {}).reduce((a, b) => a + b, 0) +
+    Object.values(shoeQuantities['safety-boots'] || {}).reduce((a, b) => a + b, 0);
+
   const isEmailRequired = kind === 'indent';
   const canSubmit = nama.trim() !== '' && (!isEmailRequired || email.trim() !== '') && divisi !== '' && !loading && (kind === 'indent' ? indentQty > 0 : totalConsumables > 0);
 
@@ -174,13 +216,29 @@ export function RequestSection() {
     let catatan = '-';
 
     if (kind === 'sekali-pakai') {
-      const activeItems = Object.entries(quantities).filter(([_, qty]) => qty > 0).map(([id, qty]) => {
-        const item = consumableItems.find((i) => i.id === id);
-        if (id === 'kacamata-safety') {
-          return `${item?.label || id} (${consumableGlassesType}): ${qty} ${item?.unit || 'pcs'}`;
+      const activeItems: string[] = [];
+      
+      Object.entries(quantities).forEach(([id, qty]) => {
+        if (qty > 0) {
+          const item = consumableItems.find((i) => i.id === id);
+          if (id === 'kacamata-safety') {
+            activeItems.push(`${item?.label || id} (${consumableGlassesType}): ${qty} ${item?.unit || 'pcs'}`);
+          } else {
+            activeItems.push(`${item?.label || id}: ${qty} ${item?.unit || 'pcs'}`);
+          }
         }
-        return `${item?.label || id}: ${qty} ${item?.unit || 'pcs'}`;
       });
+
+      ['safety-shoes', 'safety-boots'].forEach((shoeId) => {
+        const item = consumableItems.find((i) => i.id === shoeId);
+        const sizesData = shoeQuantities[shoeId] || {};
+        Object.entries(sizesData).forEach(([sz, q]) => {
+          if (q > 0) {
+            activeItems.push(`${item?.label || shoeId} (Ukuran ${sz}): ${q} ${item?.unit || 'pasang'}`);
+          }
+        });
+      });
+
       jenisAPD = activeItems.join('; ');
       jumlah = totalConsumables;
       if (quantities['kacamata-safety'] && quantities['kacamata-safety'] > 0) {
@@ -279,6 +337,7 @@ export function RequestSection() {
                 onClick={() => {
                   setSubmitted(false);
                   setQuantities({});
+                  setShoeQuantities({ 'safety-shoes': {}, 'safety-boots': {} });
                   setNama('');
                   setEmail('');
                   setDivisi('');
@@ -366,9 +425,88 @@ export function RequestSection() {
 
                   <div className="mt-3 space-y-3">
                     {consumableItems.map((item) => {
-                      const qty = quantities[item.id] ?? 0;
+                      const isShoeItem = item.id === 'safety-shoes' || item.id === 'safety-boots';
                       const availableStock = getLiveStock(item.label, item.stock);
                       const isOutOfStock = availableStock <= 0;
+
+                      if (isShoeItem) {
+                        const totalSelectedForThisShoe = getTotalShoeQty(item.id);
+                        const isExpanded = expandedShoeItem === item.id;
+
+                        return (
+                          <div key={item.id} className="rounded-xl border border-line bg-white p-4">
+                            <div className="flex flex-nowrap items-center justify-between gap-4">
+                              <div className="min-w-0 flex-1 pr-2">
+                                <p className="text-sm font-bold text-ink">{item.label}</p>
+                                <p className="mt-0.5 text-xs text-ink-subtle">{item.description} · Satuan: {item.unit}</p>
+                              </div>
+
+                              <div className="flex shrink-0 items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedShoeItem(isExpanded ? null : item.id)}
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-canvas px-3 py-2 text-xs font-bold text-ink hover:bg-slate-100">
+                                  {isExpanded ? 'Tutup Ukuran' : 'Pilih Ukuran'}
+                                  {totalSelectedForThisShoe > 0 && (
+                                    <span className="ml-1 rounded-full bg-safety-600 px-1.5 py-0.2 text-[10px] text-white">
+                                      {totalSelectedForThisShoe}
+                                    </span>
+                                  )}
+                                  {isExpanded ? <ChevronUpIcon className="h-3.5 w-3.5" /> : <ChevronDownIcon className="h-3.5 w-3.5" />}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Accordion Pilihan Ukuran Sepatu/Boots dengan Stok Real-Time per Ukuran */}
+                            {isExpanded && (
+                              <div className="mt-4 border-t border-line/60 pt-4">
+                                <p className="text-xs font-semibold text-ink-soft mb-3">
+                                  Pilih kuantitas berdasarkan ukuran (EU):
+                                </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                  {SHOE_SIZES.map((sz) => {
+                                    const szQty = (shoeQuantities[item.id] || {})[sz] || 0;
+                                    const liveSizeStock = getLiveStock(item.label, 10, sz);
+                                    const isSizeEmpty = liveSizeStock <= 0;
+
+                                    return (
+                                      <div key={sz} className="flex items-center justify-between rounded-lg border border-line bg-canvas px-3 py-2">
+                                        <div>
+                                          <span className="text-xs font-bold text-ink">Ukuran {sz}</span>
+                                          <span className="block text-[10px] text-ink-subtle">
+                                            {isSizeEmpty ? 'Stok Habis' : `Stok: ${liveSizeStock}`}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center rounded-lg border border-line bg-white">
+                                          <button
+                                            type="button"
+                                            disabled={szQty <= 0}
+                                            onClick={() => setShoeSizeQty(item.id, sz, szQty - 1, liveSizeStock)}
+                                            className="grid h-7 w-7 place-items-center rounded-l-lg text-ink-muted hover:bg-canvas disabled:opacity-30">
+                                            <MinusIcon className="h-3 w-3" />
+                                          </button>
+                                          <span className="w-7 text-center text-xs font-bold tabular-nums text-ink">
+                                            {szQty}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            disabled={isSizeEmpty || szQty >= liveSizeStock}
+                                            onClick={() => setShoeSizeQty(item.id, sz, szQty + 1, liveSizeStock)}
+                                            className="grid h-7 w-7 place-items-center rounded-r-lg text-ink-muted hover:bg-canvas disabled:opacity-30">
+                                            <PlusIcon className="h-3 w-3" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      const qty = quantities[item.id] ?? 0;
 
                       return (
                         <div key={item.id} className="rounded-xl border border-line bg-white p-4">
@@ -443,7 +581,7 @@ export function RequestSection() {
                   <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 flex items-start gap-2.5 text-xs text-amber-900">
                     <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
                     <span>
-                      <strong>Alur Pengadaan / Indent:</strong> Formulir ini memproses pemesanan APD khusus (Helm, Inner Helm, Body Harness, Sepatu, Boots, Wearpack, Sarung Tangan, Earplug, Chin Strap, Respirator, Kap Las, dan Kacamata) saat persediaan fisik di gudang kosong.
+                      <strong>Alur Pengadaan / Indent:</strong> Formulir ini memproses pemesanan APD khusus saat persediaan fisik di gudang kosong.
                     </span>
                   </div>
 
@@ -557,7 +695,6 @@ export function RequestSection() {
                 </p>
 
                 <ol className="mt-6 space-y-6">
-                  {/* Step 1 */}
                   <li className="relative flex items-start gap-4">
                     <span className={`absolute left-[15px] top-8 h-full w-0.5 ${currentStep > 1 ? 'bg-ok-600' : 'bg-line'}`} />
                     <span className={`relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold ${currentStep >= 1 ? 'bg-ok-600 text-white' : 'border border-line bg-white text-ink-subtle'}`}>
@@ -566,14 +703,12 @@ export function RequestSection() {
                     <div className="pt-0.5">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-ink">Diajukan</span>
-                        {currentStep === 1 && <StatusBadge tone="warning">Antrean Logistik</StatusBadge>}
-                        {currentStep > 1 && <StatusBadge tone="success">Selesai</StatusBadge>}
+                        {currentStep === 1 ? <StatusBadge tone="warning">Antrean Logistik</StatusBadge> : <StatusBadge tone="success">Selesai</StatusBadge>}
                       </div>
                       <p className="mt-1 text-xs text-ink-subtle">Permohonan telah tercatat di antrean logistik K3.</p>
                     </div>
                   </li>
 
-                  {/* Step 2 */}
                   <li className="relative flex items-start gap-4">
                     <span className={`absolute left-[15px] top-8 h-full w-0.5 ${currentStep > 2 ? 'bg-ok-600' : 'bg-line'}`} />
                     <span className={`relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold ${currentStep > 2 ? 'bg-ok-600 text-white' : currentStep === 2 ? 'bg-amber-500 text-white' : 'border border-line bg-white text-ink-subtle'}`}>
@@ -589,7 +724,6 @@ export function RequestSection() {
                     </div>
                   </li>
 
-                  {/* Step 3 */}
                   <li className="relative flex items-start gap-4">
                     <span className={`relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold ${currentStep === 3 ? 'bg-ok-600 text-white' : 'border border-line bg-white text-ink-subtle'}`}>
                       {currentStep === 3 ? <CheckCircle2Icon className="h-4 w-4" /> : '3'}
