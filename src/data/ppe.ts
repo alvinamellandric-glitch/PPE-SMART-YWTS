@@ -51,6 +51,7 @@ export const navLinks: NavLink[] = [
 
 export const heroImage = 'https://www.samudera.id/public_assets/img/about-ywts.png';
 
+// Penambahan 'Procurement' ke dalam daftar divisi
 export const departments: string[] = [
   'Produksi',
   'QHSE',
@@ -61,7 +62,8 @@ export const departments: string[] = [
   'Engineering',
   'Finance',
   'HC',
-  'Marketing'
+  'Marketing',
+  'Procurement'
 ];
 
 export const wearpackSizes: string[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
