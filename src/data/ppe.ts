@@ -39,9 +39,9 @@ export interface ConsumableItem {
   hasSubtype?: boolean;
   canIndentIfEmpty: boolean;
   description?: string;
+  hasSizes?: boolean;
 }
 
-// 1. Ekspor yang dibutuhkan Header.tsx
 export const navLinks: NavLink[] = [
   { label: 'Beranda', href: '#beranda' },
   { label: 'Form Pinjam', href: '#portal-peminjaman' },
@@ -49,10 +49,8 @@ export const navLinks: NavLink[] = [
   { label: 'Panduan K3', href: '#panduan-k3' }
 ];
 
-// 2. Ekspor yang dibutuhkan Hero.tsx
 export const heroImage = 'https://www.samudera.id/public_assets/img/about-ywts.png';
 
-// 3. Konfigurasi Divisi & Ukuran
 export const departments: string[] = [
   'Produksi',
   'QHSE',
@@ -67,6 +65,7 @@ export const departments: string[] = [
 ];
 
 export const wearpackSizes: string[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+export const shoeSizes: string[] = ['36', '37', '38', '39', '40', '41', '42', '43', '44'];
 
 export const sopSteps: string[] = [
   'Pilih APD yang dibutuhkan pada formulir peminjaman atau permintaan.',
@@ -75,7 +74,6 @@ export const sopSteps: string[] = [
   'Untuk APD wajib kembali, kembalikan sebelum pukul 16.00 WIB pada hari yang sama dengan mengunggah foto bukti fisik.'
 ];
 
-// 4. Katalog APD Sesuai Daftar 23 Item Master APD di Google Sheets (+ Inner Helm)
 export const ppeCatalog: PPEItem[] = [
   {
     id: 'helm-safety',
@@ -111,7 +109,7 @@ export const ppeCatalog: PPEItem[] = [
     description: 'Full body harness double lanyard shock absorber untuk kerja ketinggian.'
   },
   {
-    id: 'safety-shoes-low',
+    id: 'safety-shoes',
     name: 'Safety Shoes (Low Cut)',
     category: 'Foot Protection',
     totalStock: 40,
@@ -119,10 +117,11 @@ export const ppeCatalog: PPEItem[] = [
     unit: 'pasang',
     requiresReturn: true,
     canIndentIfEmpty: true,
-    description: 'Sepatu kerja berujung besi (steel toe cap) model pendek.'
+    description: 'Sepatu kerja berujung besi (steel toe cap) model pendek.',
+    sizes: shoeSizes
   },
   {
-    id: 'safety-boots-high',
+    id: 'safety-boots',
     name: 'Safety Boots (High Cut)',
     category: 'Foot Protection',
     totalStock: 30,
@@ -130,7 +129,8 @@ export const ppeCatalog: PPEItem[] = [
     unit: 'pasang',
     requiresReturn: true,
     canIndentIfEmpty: true,
-    description: 'Sepatu boots tinggi tahan benturan, genangan air, dan oli.'
+    description: 'Sepatu boots tinggi tahan benturan, genangan air, dan oli.',
+    sizes: shoeSizes
   },
   {
     id: 'wearpack',
@@ -343,15 +343,14 @@ export const ppeCatalog: PPEItem[] = [
   }
 ];
 
-// 5. Ekspor yang dibutuhkan BorrowForm.tsx
 export const borrowableItems: BorrowableItem[] = ppeCatalog;
 
-// 6. Ekspor untuk Portal Permintaan (Mengambil langsung dari ppeCatalog agar sinkron)
 export const consumableItems: ConsumableItem[] = ppeCatalog.map((item) => ({
   id: item.id,
   label: item.name,
   unit: item.unit,
   stock: item.totalStock,
   canIndentIfEmpty: item.canIndentIfEmpty,
-  description: item.description
+  description: item.description,
+  hasSizes: !!item.sizes
 }));
