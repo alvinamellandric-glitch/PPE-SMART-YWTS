@@ -75,7 +75,7 @@ export function RequestSection() {
           const lastIndent = [...data.permintaan].reverse().find((r: any) => {
             const apd = String(r['Jenis APD'] || '').toLowerCase();
             const reqKind = String(r['Jenis Permintaan'] || '').toLowerCase();
-            return apd.includes('wearpack') || apd.includes('helm') || apd.includes('sepatu') || apd.includes('boots') || apd.includes('kacamata') || reqKind.includes('indent');
+            return apd.includes('wearpack') || apd.includes('helm') || apd.includes('sepatu') || apd.includes('shoes') || apd.includes('boots') || apd.includes('kacamata') || reqKind.includes('indent');
           });
           if (lastIndent && !searchTrackingId) {
             setTrackingResult(lastIndent);
@@ -97,7 +97,6 @@ export function RequestSection() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fungsi live stock untuk membaca stok per ukuran spesifik dari Google Sheets
   const getLiveStock = (itemLabel: string, fallbackStock: number, size?: string) => {
     if (!liveMasterApd || liveMasterApd.length === 0) return fallbackStock;
 
@@ -256,7 +255,7 @@ export function RequestSection() {
       if (selectedIndentApd.toLowerCase().includes('wearpack')) {
         ukuran = wearpackSize;
         warnaTipe = 'Standar';
-      } else if (selectedIndentApd.toLowerCase().includes('sepatu') || selectedIndentApd.toLowerCase().includes('boots')) {
+      } else if (selectedIndentApd.toLowerCase().includes('shoes') || selectedIndentApd.toLowerCase().includes('sepatu') || selectedIndentApd.toLowerCase().includes('boots')) {
         ukuran = shoeSize;
         warnaTipe = selectedIndentApd.includes('Low Cut') ? 'Low Cut' : 'High Cut';
       } else if (selectedIndentApd === 'Kacamata Safety / Goggles') {
@@ -457,7 +456,6 @@ export function RequestSection() {
                               </div>
                             </div>
 
-                            {/* Accordion Pilihan Ukuran Sepatu/Boots dengan Stok Real-Time per Ukuran */}
                             {isExpanded && (
                               <div className="mt-4 border-t border-line/60 pt-4">
                                 <p className="text-xs font-semibold text-ink-soft mb-3">
@@ -621,7 +619,7 @@ export function RequestSection() {
                     </div>
                   )}
 
-                  {(selectedIndentApd.toLowerCase().includes('sepatu') || selectedIndentApd.toLowerCase().includes('boots')) && (
+                  {(selectedIndentApd.toLowerCase().includes('shoes') || selectedIndentApd.toLowerCase().includes('sepatu') || selectedIndentApd.toLowerCase().includes('boots')) && (
                     <div>
                       <Field label="Ukuran Sepatu / Boots (EU)" htmlFor="shoe-size" required>
                         <select id="shoe-size" className={inputClasses} value={shoeSize} onChange={(e) => setShoeSize(e.target.value)}>
