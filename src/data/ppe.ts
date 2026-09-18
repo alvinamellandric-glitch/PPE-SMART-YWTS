@@ -51,7 +51,7 @@ export const navLinks: NavLink[] = [
 
 export const heroImage = 'https://www.samudera.id/public_assets/img/about-ywts.png';
 
-// Pembaruan Divisi: Menambahkan IT, mengubah HC menjadi HCFS, serta Procurement, Cleaning Service, Driver, dan Security
+// Penambahan Owner Ship (OS) dan Vendor Owner
 export const departments: string[] = [
   'Produksi',
   'QHSE',
@@ -67,7 +67,9 @@ export const departments: string[] = [
   'Cleaning Service',
   'Driver',
   'Security',
-  'IT'
+  'IT',
+  'Owner Ship (OS)',
+  'Vendor Owner'
 ];
 
 export const wearpackSizes: string[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
