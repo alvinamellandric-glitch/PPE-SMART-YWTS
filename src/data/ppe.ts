@@ -51,7 +51,7 @@ export const navLinks: NavLink[] = [
 
 export const heroImage = 'https://www.samudera.id/public_assets/img/about-ywts.png';
 
-// Penambahan Owner Ship (OS) dan Vendor Owner
+// Penambahan Divisi WJS
 export const departments: string[] = [
   'Produksi',
   'QHSE',
@@ -69,7 +69,8 @@ export const departments: string[] = [
   'Security',
   'IT',
   'Owner Ship (OS)',
-  'Vendor Owner'
+  'Vendor Owner',
+  'WJS'
 ];
 
 export const wearpackSizes: string[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
